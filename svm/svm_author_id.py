@@ -24,7 +24,38 @@ features_train, features_test, labels_train, labels_test = preprocess()
 
 #########################################################
 ### your code goes here ###
+def predict_author():
+    from sklearn import svm
+    #clf = svm.SVC(kernel = 'linear')
+    clf = svm.SVC(kernel = 'rbf', C = 10000.)
 
+    t0 = time()
+    clf.fit(features_train, labels_train)
+    print "training time:", round(time() - t0, 3), "s"
+
+    t1 = time()
+    pred = clf.predict(features_test)
+    print "predicting time:", round(time() - t1, 3), "s"
+
+    return pred
+
+def verify_accuracy(labels, predict):
+    from sklearn.metrics import accuracy_score
+
+    return accuracy_score(labels, predict)
+
+# run the code
+
+#features_train = features_train[:len(features_train)/100]
+#labels_train = labels_train[:len(labels_train)/100]
+
+predictions = predict_author()
+accuracy = verify_accuracy(predictions, labels_test)
+print 'accuracy:', accuracy
+
+print "predictions:", predictions[10], ",", predictions[26], ",", predictions[50]
+
+print "number of Chris predictions:", len(predictions[predictions == 1])
 #########################################################
 
 

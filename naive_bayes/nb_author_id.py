@@ -42,12 +42,12 @@ def predict_author():
 
     return pred
 
-def verify_accuracy(predict, labels):
+def verify_accuracy(labels, predict):
     from sklearn.metrics import accuracy_score
 
     return accuracy_score(labels, predict)
 
-accuracy = verify_accuracy(labels_test, predict_author())
+accuracy = verify_accuracy(predict_author(), labels_test)
 print 'accuracy:', accuracy
 #########################################################
 
