@@ -24,8 +24,25 @@ features_train, features_test, labels_train, labels_test = preprocess()
 
 #########################################################
 ### your code goes here ###
+def predict_author():
+    from sklearn import tree
+    clf = tree.DecisionTreeClassifier(min_samples_split = 40)
+    clf.fit(features_train, labels_train)
+    pred = clf.predict(features_test)
+
+    return pred
+
+def verify_accuracy(labels, predict):
+    from sklearn.metrics import accuracy_score
+
+    return accuracy_score(labels, predict)
 
 
+predictions = predict_author()
+accuracy = verify_accuracy(predictions, labels_test)
+print 'accuracy:', accuracy
+
+print 'number of features:', len(features_train[0])
 #########################################################
 
 
