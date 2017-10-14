@@ -24,18 +24,39 @@ plt.scatter(grade_slow, bumpy_slow, color = "r", label="slow")
 plt.legend()
 plt.xlabel("bumpiness")
 plt.ylabel("grade")
-plt.show()
+#plt.show()
 ################################################################################
 
 
 ### your code here!  name your classifier object clf if you want the 
 ### visualization code (prettyPicture) to show you the decision boundary
 
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+## accuracy: 0.924
+#clf = AdaBoostClassifier(
+#	base_estimator = DecisionTreeClassifier(max_depth = 2),
+#	n_estimators = 50,
+#	learning_rate = 0.03,
+#	algorithm = 'SAMME.R',
+#	random_state = 6)
+
+## accuracy: 0.94
+clf = RandomForestClassifier(
+	n_estimators = 39,
+	max_depth = 5,
+	criterion = "entropy",
+	random_state = 7)
 
 
+clf.fit(features_train, labels_train)
+pred = clf.predict(features_test)
 
-
-
+acc = accuracy_score(pred, labels_test)
+print "accuracy:", acc
 
 
 try:
