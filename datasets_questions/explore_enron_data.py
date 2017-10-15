@@ -19,4 +19,17 @@ import pickle
 
 enron_data = pickle.load(open("../final_project/final_project_dataset.pkl", "r"))
 
+print 'total people on dataset:', len(enron_data)
 
+print_feature = True
+total_poi = 0
+
+for data in enron_data:
+	if print_feature:
+		feature  = enron_data[data]
+		print 'each person\'s features:', len(feature)
+		print_feature = False
+	if enron_data[data]['poi']:
+		print 'POI:', data
+		total_poi += 1
+print 'number of persons of interest:', total_poi
