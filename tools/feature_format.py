@@ -123,6 +123,13 @@ def targetFeatureSplit( data ):
 
     return target, features
 
+def targetFeatureSplitNP(data):
+    target, features = targetFeatureSplit(data)
+
+    tg = np.array(target)
+    ft = np.array(features)
+
+    return tg, ft
 
 
 
