@@ -14,7 +14,12 @@ def outlierCleaner(predictions, ages, net_worths):
     cleaned_data = []
 
     ### your code goes here
-
+    for i in range(len(predictions)):
+        cleaned_data.append((ages[i][0], net_worths[i][0], (predictions[i][0] - net_worths[i][0]) ** 2.0))
     
-    return cleaned_data
+    # sorting list by the residual error:
+    cleaned_data = sorted(cleaned_data, key=lambda x: x[2])
+
+    # returning only 90% of original data
+    return cleaned_data[:int(len(cleaned_data) * 0.9)]
 
