@@ -68,6 +68,14 @@ try:
     plt.plot( feature_test, reg.predict(feature_test) )
 except NameError:
     pass
+
+reg.fit(feature_test, target_test)
+plt.plot(feature_train, reg.predict(feature_train), color="b") 
+# correct computation of regression score
+print '\nslope:', reg.coef_
+print 'intersect:', reg.intercept_
+print 'regression on training data:', reg.score(feature_train, target_train)
+
 plt.xlabel(features_list[1])
 plt.ylabel(features_list[0])
 plt.legend()
