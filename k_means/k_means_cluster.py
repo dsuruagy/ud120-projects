@@ -70,7 +70,20 @@ kmeans = KMeans(n_clusters = 3)
 kmeans.fit(finance_features)
 pred = kmeans.predict(finance_features)
 
-print 'maximum exercised_stock_options value:', finance_features[1].max()
+def print_minimum_maximum(feature, data):
+    values = []
+
+    for d in data:
+        value = data_dict[d][feature]
+        if value != 'NaN':
+            values.append(value)
+
+    np_values = numpy.array(values)
+
+    print '{} values - minimum: {}, maximum: {}'.format(feature, np_values.min(), np_values.max())
+
+print_minimum_maximum('exercised_stock_options', data_dict)
+print_minimum_maximum('salary', data_dict)
 
 ### rename the "name" parameter when you change the number of features
 ### so that the figure gets saved to a different file
