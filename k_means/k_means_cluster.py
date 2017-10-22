@@ -70,6 +70,8 @@ kmeans = KMeans(n_clusters = 3)
 kmeans.fit(finance_features)
 pred = kmeans.predict(finance_features)
 
+print 'maximum exercised_stock_options value:', finance_features[1].max()
+
 ### rename the "name" parameter when you change the number of features
 ### so that the figure gets saved to a different file
 try:
