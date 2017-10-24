@@ -70,20 +70,31 @@ kmeans = KMeans(n_clusters = 3)
 kmeans.fit(finance_features)
 pred = kmeans.predict(finance_features)
 
-def print_minimum_maximum(feature, data):
+def scale_minimum_maximum(feature, data):
     values = []
 
     for d in data:
-        value = data_dict[d][feature]
+        value = data[d][feature]
         if value != 'NaN':
             values.append(value)
 
     np_values = numpy.array(values)
 
-    print '{} values - minimum: {}, maximum: {}'.format(feature, np_values.min(), np_values.max())
+    print '\n{} values - minimum: {}, maximum: {}'.format(feature, np_values.min(), np_values.max())
 
-print_minimum_maximum('exercised_stock_options', data_dict)
-print_minimum_maximum('salary', data_dict)
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    scaled_features = scaler.fit(np_values.reshape(-1, 1))
+
+    return scaled_features
+
+scaled_features = scale_minimum_maximum('exercised_stock_options', data_dict)
+print 'exercised_stock_options of 1,000,000 was scaled to', \
+            scaled_features.transform(numpy.array([[1000000]]))
+
+scaled_features = scale_minimum_maximum('salary', data_dict)
+print 'salary of 200,000 was scaled to', scaled_features.transform(numpy.array([[200000]]))
+
 
 ### rename the "name" parameter when you change the number of features
 ### so that the figure gets saved to a different file
