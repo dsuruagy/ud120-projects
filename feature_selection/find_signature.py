@@ -36,8 +36,21 @@ features_train = features_train[:150].toarray()
 labels_train   = labels_train[:150]
 
 
-
 ### your code goes here
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
+clf = DecisionTreeClassifier()
+clf.fit(features_train, labels_train)
+pred = clf.predict(features_test)
 
+print 'score, with 150 data point, is ', accuracy_score(labels_test, pred)
+feat_importance = clf.feature_importances_
+print 'features of importance size', len(feat_importance)
+print 'features of importance > 0.2 on this Decision Tree:', feat_importance[feat_importance > 0.2]
+high_feat_import_idx = numpy.where(feat_importance > 0.2)[0][0]
+print 'features of importance > 0.2 on index number', high_feat_import_idx
 
+vect_feature_names = vectorizer.get_feature_names()
+print '\ntfidf feature names size', len(vect_feature_names)
+print 'feature of hightest importance is:', vect_feature_names[high_feat_import_idx]

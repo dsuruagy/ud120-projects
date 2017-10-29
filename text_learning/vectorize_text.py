@@ -53,7 +53,7 @@ for name, from_person in [("sara", from_sara), ("chris", from_chris)]:
 
             ### use str.replace() to remove any instances of the words
             ### ["sara", "shackleton", "chris", "germani"]
-            for s in ["sara", "shackleton", "chris", "germani"]:
+            for s in ["sara", "shackleton", "chris", "germani", "sshacklensf", "cgermannsf"]:
                 email_text = string.replace(email_text, s, "")
 
             ### append the text to word_data
@@ -79,7 +79,7 @@ print 'word_data[152]:', word_data[152]
 from sklearn.feature_extraction.text import TfidfVectorizer
 vectorizer = TfidfVectorizer(stop_words='english')
 vectorizer.fit_transform(word_data)
-print 'TfidfVectorizer length:', len(vectorizer.get_feature_names())
+print 'TfidfVectorizer feature_names length:', len(vectorizer.get_feature_names())
 print 'word number 34597 is', vectorizer.get_feature_names()[34597]
 
 ### in Part 4, do TfIdf vectorization here
