@@ -145,3 +145,7 @@ eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
 plot_gallery(eigenfaces, eigenface_titles, h, w)
 
 pl.show()
+
+
+print 'first pc variance is ', pca.explained_variance_(0)
+print 'second pc variance is ', pca.explained_variance_(1)
