@@ -144,8 +144,8 @@ plot_gallery(X_test, prediction_titles, h, w)
 eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
 plot_gallery(eigenfaces, eigenface_titles, h, w)
 
-pl.show()
+#pl.show()
 
 
-print 'first pc variance is ', pca.explained_variance_(0)
-print 'second pc variance is ', pca.explained_variance_(1)
+print '\nfirst pc variance is ', pca.explained_variance_ratio_[0]
+print 'second pc variance is ', pca.explained_variance_ratio_[1]
