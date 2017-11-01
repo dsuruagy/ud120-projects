@@ -14,6 +14,8 @@ import pickle
 import sys
 sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 
 data_dict = pickle.load(open("../final_project/final_project_dataset.pkl", "r") )
 
@@ -28,5 +30,10 @@ labels, features = targetFeatureSplit(data)
 
 
 ### it's all yours from here forward!  
+clf = DecisionTreeClassifier()
+clf.fit(features, labels)
+pred = clf.predict(features)
 
+print 'accuracy metrics:', accuracy_score(labels, pred)
+print 'accuracy clf:', clf.score(features, labels)
 
