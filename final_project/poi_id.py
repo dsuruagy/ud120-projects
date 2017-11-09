@@ -16,6 +16,18 @@ features_list = ['poi','salary'] # You will need to use more features
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+import pandas as pd
+df = pd.DataFrame(data_dict).transpose()
+
+financial_feats = ['salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', \
+                   'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses',\
+                   'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock',\
+                   'director_fees', 'poi']
+df[financial_feats] = df[financial_feats].apply(pd.to_numeric, errors ='coerce')
+
+# calculating the features' correlation with poi
+print df.corr()['poi']
+
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
@@ -43,7 +55,7 @@ clf = GaussianNB()
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
