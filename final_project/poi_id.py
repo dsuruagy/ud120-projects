@@ -10,12 +10,17 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary'] # You will need to use more features
+# You will need to use more features
+features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', \
+                   'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses',\
+                   'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock',\
+                   'director_fees']
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+# calculating the financial features' correlation with poi
 import pandas as pd
 df = pd.DataFrame(data_dict).transpose()
 
@@ -24,9 +29,7 @@ financial_feats = ['salary', 'deferral_payments', 'total_payments', 'loan_advanc
                    'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock',\
                    'director_fees', 'poi']
 df[financial_feats] = df[financial_feats].apply(pd.to_numeric, errors ='coerce')
-
-# calculating the features' correlation with poi
-print df.corr()['poi']
+#print df.corr()['poi']
 
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
@@ -34,7 +37,7 @@ print df.corr()['poi']
 my_dataset = data_dict
 
 ### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, sort_keys = True)
+data = featureFormat(my_dataset, features_list, sort_keys = True, remove_NaN=False)
 labels, features = targetFeatureSplit(data)
 
 ### Task 4: Try a varity of classifiers
