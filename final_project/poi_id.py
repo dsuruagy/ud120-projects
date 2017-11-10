@@ -47,8 +47,19 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+#from sklearn.naive_bayes import GaussianNB
+#clf = GaussianNB()
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+param_grid = {
+    'n_estimators' : [20, 40],
+	'max_depth' : [1, 5],
+	'criterion' : ('gini', 'entropy'),
+	'random_state' : [5, 7]}
+
+clf = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, n_jobs=-1)
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
