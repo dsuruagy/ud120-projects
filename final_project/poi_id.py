@@ -5,6 +5,7 @@ import pickle
 sys.path.append("../tools/")
 
 from feature_format import featureFormat, targetFeatureSplit
+from poi_id_utils import poi_correlation, select_feature_from_model
 from tester import dump_classifier_and_data
 
 ### Task 1: Select what features you'll use.
@@ -21,16 +22,8 @@ features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_ad
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-# calculating the financial features' correlation with poi
-import pandas as pd
-df = pd.DataFrame(data_dict).transpose()
-
-financial_feats = ['salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus',
-                   'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses',
-                   'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock',
-                   'director_fees', 'poi']
-df[financial_feats] = df[financial_feats].apply(pd.to_numeric, errors ='coerce')
-#print df.corr()['poi']
+# print features' correlation with poi
+poi_correlation(data_dict, features_list)
 
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
@@ -41,16 +34,14 @@ my_dataset = data_dict
 data = featureFormat(my_dataset, features_list, sort_keys = True, remove_NaN=True)
 labels, features = targetFeatureSplit(data)
 
-### Doing Feature Selection
-print 'features.shape:', features[0]
 
-from sklearn.feature_selection import SelectFromModel
+# Feature selecting
 from sklearn.linear_model import LinearRegression
-lin_reg = LinearRegression().fit(features, labels)
-model = SelectFromModel(lin_reg, prefit=True, threshold='0.008*mean')
-features = model.transform(features)
+select_feature_from_model(LinearRegression(), labels, features, features_list)
 
-print 'new features.shape:', features[0]
+from sklearn.svm import LinearSVC
+select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=False), labels, features, features_list)
+
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
