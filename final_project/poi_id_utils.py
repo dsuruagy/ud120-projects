@@ -10,7 +10,7 @@ def poi_correlation(ddict, feats_names):
 
 
 ### Doing Feature Selection
-def select_feature_from_model(classifier, lbls, feats, feats_names, print_shape=False):
+def select_feature_from_model(classifier, lbls, feats, feats_names, print_shape=False, threshold='0.008*mean'):
 
     from sklearn.feature_selection import SelectFromModel
     import numpy as np
@@ -19,7 +19,7 @@ def select_feature_from_model(classifier, lbls, feats, feats_names, print_shape=
         print 'features.shape:', feats[0]
 
     clazzf = classifier.fit(feats, lbls)
-    model = SelectFromModel(clazzf, prefit=True, threshold='0.008*mean')
+    model = SelectFromModel(clazzf, prefit=True, threshold=threshold)
     feats = model.transform(feats)
 
     if print_shape:
@@ -28,8 +28,13 @@ def select_feature_from_model(classifier, lbls, feats, feats_names, print_shape=
     feature_idx = model.get_support()
     # creating a copy of the original features list names
     feats_names = list(feats_names)
-    feats_names.pop(0)
-    features_np = np.array(feats_names)
-    print '\nselected features:', features_np[feature_idx]
 
-    return feats
+    # removing the first feature (poi), to match selected indexes
+    poi = feats_names.pop(0)
+    features_np = np.array(feats_names)[feature_idx]
+    print '\nselected features:', features_np
+
+    # reinserting poi feature, needed to execute the test
+    features_np = np.insert(features_np, 0, poi)
+
+    return features_np

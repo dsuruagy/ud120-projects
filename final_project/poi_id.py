@@ -6,7 +6,7 @@ sys.path.append("../tools/")
 
 from feature_format import featureFormat, targetFeatureSplit
 from poi_id_utils import poi_correlation, select_feature_from_model
-from tester import dump_classifier_and_data
+from tester import dump_classifier_and_data, main
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -37,10 +37,10 @@ labels, features = targetFeatureSplit(data)
 
 # Feature selecting
 from sklearn.linear_model import LinearRegression
-select_feature_from_model(LinearRegression(), labels, features, features_list)
+#features_list = select_feature_from_model(LinearRegression(), labels, features, features_list)
 
 from sklearn.svm import LinearSVC
-select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=False), labels, features, features_list)
+features_list = select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=False), labels, features, features_list)
 
 
 ### Task 4: Try a varity of classifiers
@@ -53,14 +53,14 @@ select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=False), labels, f
 #Accuracy: 0.37620	Precision: 0.15599	Recall: 0.83400	F1: 0.26282	F2: 0.44616
 #Total predictions: 15000	True positives: 1668	False positives: 9025	False negatives:  332	True negatives: 3975
 
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+#from sklearn.naive_bayes import GaussianNB
+#clf = GaussianNB()
 
 #Accuracy: 0.78860	Precision: 0.19897	Recall: 0.19350	F1: 0.19620	F2: 0.19457
 #Total predictions: 15000	True positives:  387	False positives: 1558	False negatives: 1613	True negatives: 11442
 
-#from sklearn.tree import DecisionTreeClassifier
-#clf = DecisionTreeClassifier()
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier()
 
 
 #Accuracy: 0.85427	Precision: 0.24451	Recall: 0.04450	F1: 0.07530	F2: 0.05320
@@ -107,3 +107,6 @@ features_train, features_test, labels_train, labels_test = \
 ### generates the necessary .pkl files for validating your results.
 
 dump_classifier_and_data(clf, my_dataset, features_list)
+
+#### TODO Remover esta linha no final
+main()
