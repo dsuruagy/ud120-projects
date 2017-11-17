@@ -4,8 +4,8 @@ import sys
 import pickle
 sys.path.append("../tools/")
 
+import poi_id_utils as pu
 from feature_format import featureFormat, targetFeatureSplit
-from poi_id_utils import poi_correlation, select_feature_from_model
 from tester import dump_classifier_and_data, main
 
 ### Task 1: Select what features you'll use.
@@ -22,10 +22,19 @@ features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_ad
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-# print features' correlation with poi
-poi_correlation(data_dict, features_list)
-
 ### Task 2: Remove outliers
+
+# removing TOTAL data_point, because it's an outlier:
+data_dict.pop('TOTAL')
+
+# converting data dict to dataframe, to use statistics functions
+df = pu.datadict_to_dataframe(data_dict, features_list)
+
+# with the describe function, it's possible to see if there are other max values for outliers
+# like for the TOTAL observation
+#print df.describe()
+
+
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
@@ -35,12 +44,15 @@ data = featureFormat(my_dataset, features_list, sort_keys = True, remove_NaN=Tru
 labels, features = targetFeatureSplit(data)
 
 
+# print features' correlation with poi
+#pu.poi_correlation(data_dict, features_list)
+
 # Feature selecting
-from sklearn.linear_model import LinearRegression
-#features_list = select_feature_from_model(LinearRegression(), labels, features, features_list)
+from sklearn.preprocessing import scale
+feat_scale = scale(features)
 
 from sklearn.svm import LinearSVC
-features_list = select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=False), labels, features, features_list)
+features_list = pu.select_features(LinearSVC(C=0.1, penalty="l1", dual=False), labels, feat_scale, features_list)
 
 
 ### Task 4: Try a varity of classifiers
@@ -48,6 +60,8 @@ features_list = select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=F
 ### Note that if you want to do PCA or other multi-stage operations,
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
+
+
 
 # Provided to give you a starting point. Try a variety of classifiers.
 #Accuracy: 0.37620	Precision: 0.15599	Recall: 0.83400	F1: 0.26282	F2: 0.44616
@@ -59,13 +73,21 @@ features_list = select_feature_from_model(LinearSVC(C=0.01, penalty="l1", dual=F
 #Accuracy: 0.78860	Precision: 0.19897	Recall: 0.19350	F1: 0.19620	F2: 0.19457
 #Total predictions: 15000	True positives:  387	False positives: 1558	False negatives: 1613	True negatives: 11442
 
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier()
+#from sklearn.tree import DecisionTreeClassifier
+#clf = DecisionTreeClassifier()
 
+#Accuracy: 0.82636	Precision: 0.37968	Recall: 0.34000	F1: 0.35874	F2: 0.34726
+#Total predictions: 14000	True positives:  680	False positives: 1111	False negatives: 1320	True negatives: 10889
+
+#from sklearn.pipeline import Pipeline
+#from sklearn.preprocessing import StandardScaler
+
+#estimators = [('scaler', StandardScaler()), ('classifier', DecisionTreeClassifier())]
+#clf = Pipeline(estimators)
 
 #Accuracy: 0.85427	Precision: 0.24451	Recall: 0.04450	F1: 0.07530	F2: 0.05320
 #Total predictions: 15000	True positives:   89	False positives:  275	False negatives: 1911	True negatives: 12725
-'''
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 param_grid = {
@@ -75,10 +97,29 @@ param_grid = {
 	'random_state' : [5, 7]}
 
 clf = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, n_jobs=-1)
-'''
 
+
+#Accuracy: 0.86400	Precision: 0.14286	Recall: 0.07200	F1: 0.09574	F2: 0.07993
+#Total predictions: 10000	True positives:   72	False positives:  432	False negatives:  928	True negatives: 8568
+'''from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import randint as sp_randint
+num_feats = len(features_list) - 1
+
+param_dist = {"max_depth": [3, None],
+              "max_features": sp_randint(1, num_feats),
+              "min_samples_split": sp_randint(2, num_feats),
+              "min_samples_leaf": sp_randint(1, num_feats),
+              "bootstrap": [True, False],
+              "criterion": ["gini", "entropy"]}
+clf = RandomizedSearchCV(RandomForestClassifier(n_estimators=20),
+                         param_distributions=param_dist, n_iter=20, n_jobs=-1)
+'''
 #Accuracy: 0.83633	Precision: 0.20945	Recall: 0.08200	F1: 0.11786	F2: 0.09336
 #Total predictions: 15000	True positives:  164	False positives:  619	False negatives: 1836	True negatives: 12381
+
+#Accuracy: 0.86790	Precision: 0.26292	Recall: 0.17800	F1: 0.21228	F2: 0.19029
+#Total predictions: 10000	True positives:  178	False positives:  499	False negatives:  822	True negatives: 8501
 '''
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -89,6 +130,35 @@ clf = AdaBoostClassifier(
 	algorithm = 'SAMME.R',
 	random_state = 6)
 '''
+'''from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import RandomizedSearchCV
+param_dist = {"max_depth": [3, None],
+              "max_features": sp_randint(1, num_feats),
+              "min_samples_split": sp_randint(2, num_feats),
+              "min_samples_leaf": sp_randint(1, num_feats),
+              "algorithm": ["SAMME.R", "SAMME"],
+              "random_state": [0, 2, 4, 6],
+              "learning_rate" = 0.03}
+clf = AdaBoostClassifier(
+	base_estimator = DecisionTreeClassifier(max_depth = 2),
+	n_estimators = 50,
+	
+	algorithm = '',
+	 = 6)
+'''
+
+'''
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+param_grid = {
+    'C' : [0.001, 0.01, 0.1, 1, 10],
+	'gamma' : [0.001, 0.01, 0.1, 1],
+	'kernel' : ('rbf', 'linear')}
+
+clf = GridSearchCV(SVC(), param_grid=param_grid, n_jobs=-1)
+'''
+
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
