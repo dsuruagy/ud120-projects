@@ -1,5 +1,30 @@
 import pandas as pd
 
+def describe_data(data_dict):
+    '''
+    Answer some of important characteristics of data_dict, like:
+        - total number of data points
+        - allocation across classes (POI/non-POI)
+        - number of features used
+        - are there features with many missing values? etc.
+
+    :param data_dict:
+    :return:
+    '''
+    print 'Total number of data points:', len(data_dict)
+
+    print_feature = True
+    total_poi = 0
+    for data in data_dict:
+        if print_feature:
+            feature = data_dict[data]
+            print '\nEach person\'s features:', len(feature)
+            print_feature = False
+        # print feature
+        if data_dict[data]['poi']:
+            total_poi += 1
+    print '\nnumber of persons of interest:', total_poi
+
 def datadict_to_dataframe(ddict, feats_names):
     df = pd.DataFrame(ddict).transpose()
     df.drop('email_address', inplace=True, axis=1)

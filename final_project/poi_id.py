@@ -23,6 +23,7 @@ with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 ### Task 2: Remove outliers
+pu.describe_data(data_dict)
 
 # removing TOTAL data_point, because it's an outlier:
 data_dict.pop('TOTAL')
@@ -64,100 +65,49 @@ features_list = pu.select_features(LinearSVC(C=0.1, penalty="l1", dual=False), l
 
 
 # Provided to give you a starting point. Try a variety of classifiers.
-#Accuracy: 0.37620	Precision: 0.15599	Recall: 0.83400	F1: 0.26282	F2: 0.44616
-#Total predictions: 15000	True positives: 1668	False positives: 9025	False negatives:  332	True negatives: 3975
-
-#from sklearn.naive_bayes import GaussianNB
-#clf = GaussianNB()
-
-#Accuracy: 0.78860	Precision: 0.19897	Recall: 0.19350	F1: 0.19620	F2: 0.19457
-#Total predictions: 15000	True positives:  387	False positives: 1558	False negatives: 1613	True negatives: 11442
-
-#from sklearn.tree import DecisionTreeClassifier
-#clf = DecisionTreeClassifier()
-
-#Accuracy: 0.82636	Precision: 0.37968	Recall: 0.34000	F1: 0.35874	F2: 0.34726
-#Total predictions: 14000	True positives:  680	False positives: 1111	False negatives: 1320	True negatives: 10889
-
-#from sklearn.pipeline import Pipeline
-#from sklearn.preprocessing import StandardScaler
-
-#estimators = [('scaler', StandardScaler()), ('classifier', DecisionTreeClassifier())]
-#clf = Pipeline(estimators)
-
-#Accuracy: 0.85427	Precision: 0.24451	Recall: 0.04450	F1: 0.07530	F2: 0.05320
-#Total predictions: 15000	True positives:   89	False positives:  275	False negatives: 1911	True negatives: 12725
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
-param_grid = {
-    'n_estimators' : [20, 40],
-	'max_depth' : [1, 5],
-	'criterion' : ('gini', 'entropy'),
-	'random_state' : [5, 7]}
-
-clf = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, n_jobs=-1)
 
 
-#Accuracy: 0.86400	Precision: 0.14286	Recall: 0.07200	F1: 0.09574	F2: 0.07993
-#Total predictions: 10000	True positives:   72	False positives:  432	False negatives:  928	True negatives: 8568
-'''from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint as sp_randint
-num_feats = len(features_list) - 1
-
-param_dist = {"max_depth": [3, None],
-              "max_features": sp_randint(1, num_feats),
-              "min_samples_split": sp_randint(2, num_feats),
-              "min_samples_leaf": sp_randint(1, num_feats),
-              "bootstrap": [True, False],
-              "criterion": ["gini", "entropy"]}
-clf = RandomizedSearchCV(RandomForestClassifier(n_estimators=20),
-                         param_distributions=param_dist, n_iter=20, n_jobs=-1)
-'''
-#Accuracy: 0.83633	Precision: 0.20945	Recall: 0.08200	F1: 0.11786	F2: 0.09336
-#Total predictions: 15000	True positives:  164	False positives:  619	False negatives: 1836	True negatives: 12381
-
-#Accuracy: 0.86790	Precision: 0.26292	Recall: 0.17800	F1: 0.21228	F2: 0.19029
-#Total predictions: 10000	True positives:  178	False positives:  499	False negatives:  822	True negatives: 8501
-'''
+#Accuracy: 0.82736	Precision: 0.38711	Recall: 0.35750	F1: 0.37172	F2: 0.36305
+#Total predictions: 14000	True positives:  715	False positives: 1132	False negatives: 1285	True negatives: 10868
+#classif = DecisionTreeClassifier()
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
-clf = AdaBoostClassifier(
-	base_estimator = DecisionTreeClassifier(max_depth = 2),
-	n_estimators = 50,
-	learning_rate = 0.03,
-	algorithm = 'SAMME.R',
-	random_state = 6)
+classif = AdaBoostClassifier(
+	base_estimator = DecisionTreeClassifier())
+	#n_estimators = 250,
+	#learning_rate = 0.03,
+	#algorithm = 'SAMME.R',
+	#random_state = 6)
+estimators = [('reduce_dim', PCA()), ('classifier', classif)]
+
+#Accuracy: 0.85450	Precision: 0.47323	Recall: 0.16350	F1: 0.24303	F2: 0.18813
+#Total predictions: 14000	True positives:  327	False positives:  364	False negatives: 1673	True negatives: 11636
+#estimators = [('reduce_dim', PCA()), ('classifier', RandomForestClassifier())]
+
+pipe = Pipeline(estimators)
 '''
-'''from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import RandomizedSearchCV
-param_dist = {"max_depth": [3, None],
-              "max_features": sp_randint(1, num_feats),
-              "min_samples_split": sp_randint(2, num_feats),
-              "min_samples_leaf": sp_randint(1, num_feats),
-              "algorithm": ["SAMME.R", "SAMME"],
-              "random_state": [0, 2, 4, 6],
-              "learning_rate" = 0.03}
-clf = AdaBoostClassifier(
-	base_estimator = DecisionTreeClassifier(max_depth = 2),
-	n_estimators = 50,
-	
-	algorithm = '',
-	 = 6)
+'reduce_dim__n_components' :[None, 2, 3],
+'reduce_dim__whiten' : (True, False),
+
+, scoring='recall'
 '''
 
-'''
-from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV
 param_grid = {
-    'C' : [0.001, 0.01, 0.1, 1, 10],
-	'gamma' : [0.001, 0.01, 0.1, 1],
-	'kernel' : ('rbf', 'linear')}
+              'classifier__base_estimator__criterion' : ('gini', 'entropy'),
+              'classifier__base_estimator__splitter' : ('best', 'random'),
+              'classifier__base_estimator__max_depth' : [None, 1, 2],
+              'classifier__algorithm' : ('SAMME', 'SAMME.R'),
+              'classifier__random_state' : range(1,7)}
+#param_grid = {'classifier__max_depth' : range(2,30)}
+clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=4)
+#clf =GridSearchCV(classif, param_grid=param_grid, n_jobs=4)
+#clf = pipe
 
-clf = GridSearchCV(SVC(), param_grid=param_grid, n_jobs=-1)
-'''
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -169,7 +119,20 @@ clf = GridSearchCV(SVC(), param_grid=param_grid, n_jobs=-1)
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
-    train_test_split(features, labels, test_size=0.3, random_state=42)
+    train_test_split(feat_scale, labels, test_size=0.3, random_state=42)
+
+if True:
+    clf.fit(features_train, labels_train)
+    print '\nBest score: %0.3f' % clf.best_score_
+    print 'Best parameters set:'
+    best_parameters = clf.best_estimator_.get_params()
+    for param_name in sorted(param_grid.keys()):
+        print '\t%s: %r' % (param_name, best_parameters[param_name])
+
+    from sklearn.metrics import accuracy_score, precision_score, recall_score
+    print 'accuracy:', accuracy_score(labels_test, clf.predict(features_test))
+    print 'precision:', precision_score(labels_test, clf.predict(features_test))
+    print 'recall:', recall_score(labels_test, clf.predict(features_test))
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
@@ -179,4 +142,4 @@ features_train, features_test, labels_train, labels_test = \
 dump_classifier_and_data(clf, my_dataset, features_list)
 
 #### TODO Remover esta linha no final
-main()
+#main()
