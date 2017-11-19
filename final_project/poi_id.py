@@ -63,51 +63,67 @@ features_list = pu.select_features(LinearSVC(C=0.1, penalty="l1", dual=False), l
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 
-
-# Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA
-
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+clf = None
 
+local = True
 
-#Accuracy: 0.82736	Precision: 0.38711	Recall: 0.35750	F1: 0.37172	F2: 0.36305
-#Total predictions: 14000	True positives:  715	False positives: 1132	False negatives: 1285	True negatives: 10868
-#classif = DecisionTreeClassifier()
-from sklearn.ensemble import AdaBoostClassifier
-classif = AdaBoostClassifier(
-	base_estimator = DecisionTreeClassifier())
-	#n_estimators = 250,
-	#learning_rate = 0.03,
-	#algorithm = 'SAMME.R',
-	#random_state = 6)
-estimators = [('reduce_dim', PCA()), ('classifier', classif)]
+if True:
+    #Accuracy: 0.82593	Precision: 0.37895	Recall: 0.34200	F1: 0.35953	F2: 0.34880
+	#Total predictions: 14000	True positives:  684	False positives: 1121	False negatives: 1316	True negatives: 10879
+    clf = DecisionTreeClassifier()
+    print clf
 
-#Accuracy: 0.85450	Precision: 0.47323	Recall: 0.16350	F1: 0.24303	F2: 0.18813
-#Total predictions: 14000	True positives:  327	False positives:  364	False negatives: 1673	True negatives: 11636
-#estimators = [('reduce_dim', PCA()), ('classifier', RandomForestClassifier())]
+if False:
+    #Accuracy: 0.82871	Precision: 0.39335	Recall: 0.36700	F1: 0.37972	F2: 0.37198
+	#Total predictions: 14000	True positives:  734	False positives: 1132	False negatives: 1266	True negatives: 10868
+    estimators = [('reduce_dim', PCA()), ('classifier', DecisionTreeClassifier())]
+    clf = Pipeline(estimators)
 
-pipe = Pipeline(estimators)
-'''
-'reduce_dim__n_components' :[None, 2, 3],
-'reduce_dim__whiten' : (True, False),
+if False:
+    classif = DecisionTreeClassifier()
 
-, scoring='recall'
-'''
+    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
 
-param_grid = {
+    pipe = Pipeline(estimators)
+
+    param_grid = {
+              'classifier__criterion' : ('gini', 'entropy'),
+              'classifier__splitter' : ('best', 'random'),
+              'classifier__max_depth' : [None, 1, 2, 3],
+              'classifier__random_state' : range(1,42)}
+
+    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
+
+if False:
+    from sklearn.ensemble import AdaBoostClassifier
+    classif = AdaBoostClassifier(base_estimator = DecisionTreeClassifier())
+
+    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
+
+    pipe = Pipeline(estimators)
+
+    param_grid = {'reduce_dim__n_components' : [None, 1, 19],
               'classifier__base_estimator__criterion' : ('gini', 'entropy'),
               'classifier__base_estimator__splitter' : ('best', 'random'),
               'classifier__base_estimator__max_depth' : [None, 1, 2],
               'classifier__algorithm' : ('SAMME', 'SAMME.R'),
-              'classifier__random_state' : range(1,7)}
-#param_grid = {'classifier__max_depth' : range(2,30)}
-clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=4)
-#clf =GridSearchCV(classif, param_grid=param_grid, n_jobs=4)
-#clf = pipe
+              'classifier__random_state' : range(30,42)}
 
+    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
+
+if False:
+    from sklearn.ensemble import AdaBoostClassifier
+    estimator = DecisionTreeClassifier(criterion='gini', max_depth=1, splitter='random', random_state=34)
+    pca = PCA(n_components=1)
+    classif = AdaBoostClassifier(algorithm='SAMME', base_estimator = estimator)
+
+    estimators = [('reduce_dim', pca), ('classifier', classif)]
+
+    clf = Pipeline(estimators)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -117,22 +133,37 @@ clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=4)
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
-from sklearn.model_selection import train_test_split
-features_train, features_test, labels_train, labels_test = \
-    train_test_split(feat_scale, labels, test_size=0.3, random_state=42)
+#from sklearn.model_selection import train_test_split
+#features_train, features_test, labels_train, labels_test = \
+#    train_test_split(feat_scale, labels, test_size=0.3, random_state=42)
 
-if True:
+from sklearn.model_selection import StratifiedShuffleSplit
+sss = StratifiedShuffleSplit(n_splits=1000, test_size=0.3, random_state=42)
+
+features_train, features_test, labels_train, labels_test = [],[],[],[]
+for train_indices, test_indices in sss.split(feat_scale, labels):
+    features_train = [feat_scale[ii] for ii in train_indices]
+    features_test  = [feat_scale[ii] for ii in test_indices]
+    labels_train   = [labels[ii] for ii in train_indices]
+    labels_test    = [labels[ii] for ii in test_indices]
+
+if local:
     clf.fit(features_train, labels_train)
-    print '\nBest score: %0.3f' % clf.best_score_
-    print 'Best parameters set:'
-    best_parameters = clf.best_estimator_.get_params()
-    for param_name in sorted(param_grid.keys()):
-        print '\t%s: %r' % (param_name, best_parameters[param_name])
+    try:
+        print '\nBest score: %0.3f' % clf.best_score_
+        print 'Best parameters set:'
+        best_parameters = clf.best_estimator_.get_params()
+        for param_name in sorted(param_grid.keys()):
+            print '\t%s: %r' % (param_name, best_parameters[param_name])
+    except AttributeError:
+        print 'No score information'
 
     from sklearn.metrics import accuracy_score, precision_score, recall_score
-    print 'accuracy:', accuracy_score(labels_test, clf.predict(features_test))
-    print 'precision:', precision_score(labels_test, clf.predict(features_test))
-    print 'recall:', recall_score(labels_test, clf.predict(features_test))
+
+    predict = clf.predict(features_test)
+    print 'accuracy:', accuracy_score(labels_test, predict)
+    print 'precision:', precision_score(labels_test, predict)
+    print 'recall:', recall_score(labels_test, predict)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
@@ -142,4 +173,5 @@ if True:
 dump_classifier_and_data(clf, my_dataset, features_list)
 
 #### TODO Remover esta linha no final
-#main()
+if not local:
+    main()
