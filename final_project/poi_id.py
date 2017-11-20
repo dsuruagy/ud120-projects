@@ -55,6 +55,10 @@ feat_scale = scale(features)
 from sklearn.svm import LinearSVC
 features_list = pu.select_features(LinearSVC(C=0.1, penalty="l1", dual=False), labels, feat_scale, features_list)
 
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_classif
+anova_filter = SelectKBest(f_classif, k=6)
+#features_list = anova_filter.fit_transform(feat_scale, labels)
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -71,11 +75,10 @@ clf = None
 
 local = True
 
-if True:
+if False:
     #Accuracy: 0.82593	Precision: 0.37895	Recall: 0.34200	F1: 0.35953	F2: 0.34880
 	#Total predictions: 14000	True positives:  684	False positives: 1121	False negatives: 1316	True negatives: 10879
     clf = DecisionTreeClassifier()
-    print clf
 
 if False:
     #Accuracy: 0.82871	Precision: 0.39335	Recall: 0.36700	F1: 0.37972	F2: 0.37198
@@ -116,10 +119,49 @@ if False:
     clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
 
 if False:
+    # great Precision 0.80830, but not too good Recall 0.20450
     from sklearn.ensemble import AdaBoostClassifier
     estimator = DecisionTreeClassifier(criterion='gini', max_depth=1, splitter='random', random_state=34)
     pca = PCA(n_components=1)
     classif = AdaBoostClassifier(algorithm='SAMME', base_estimator = estimator)
+
+    estimators = [('reduce_dim', pca), ('classifier', classif)]
+
+    clf = Pipeline(estimators)
+
+if False:
+    from sklearn.ensemble import RandomForestClassifier
+
+    param_grid = {
+            'n_estimators': range(10, 40),
+            'max_depth': [None, 1, 2],
+            'criterion': ('gini', 'entropy'),
+            'random_state': range(20,42)}
+
+    clf = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, n_jobs=-1)
+
+if True:
+    from sklearn.ensemble import RandomForestClassifier
+    classif = RandomForestClassifier()
+    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
+
+    pipe = Pipeline(estimators)
+
+    param_grid = {'reduce_dim__n_components' : [None, 1, 19],
+            'classifier__n_estimators': range(10, 40),
+            'classifier__max_depth': [None, 1, 2],
+            'classifier__criterion': ('gini', 'entropy'),
+            'classifier__random_state': range(20,42)}
+
+    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
+
+if False:
+    #Accuracy: 0.83143     Precision: 0.39865    Recall: 0.35400    F1: 0.37500    F2: 0.36211
+    #Total predictions: 14000    True positives:  708     False positives: 1068    False negatives: 1292  True negatives: 10932
+    from sklearn.ensemble import RandomForestClassifier
+
+    classif = RandomForestClassifier(criterion='gini', max_depth=None, n_estimators=14, random_state=20, n_jobs=-1)
+    pca = PCA(n_components=1)
 
     estimators = [('reduce_dim', pca), ('classifier', classif)]
 
@@ -155,6 +197,10 @@ if local:
         best_parameters = clf.best_estimator_.get_params()
         for param_name in sorted(param_grid.keys()):
             print '\t%s: %r' % (param_name, best_parameters[param_name])
+
+        clf = clf.best_estimator_
+        print clf
+
     except AttributeError:
         print 'No score information'
 
