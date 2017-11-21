@@ -57,7 +57,7 @@ features_list = pu.select_features(LinearSVC(C=0.1, penalty="l1", dual=False), l
 
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
-anova_filter = SelectKBest(f_classif, k=6)
+anova_filter = SelectKBest(f_classif, k=5)
 #features_list = anova_filter.fit_transform(feat_scale, labels)
 
 ### Task 4: Try a varity of classifiers
@@ -66,48 +66,21 @@ anova_filter = SelectKBest(f_classif, k=6)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.decomposition import PCA
-from sklearn.model_selection import GridSearchCV
-clf = None
-
-local = True
-
-if False:
-    #Accuracy: 0.82593	Precision: 0.37895	Recall: 0.34200	F1: 0.35953	F2: 0.34880
-	#Total predictions: 14000	True positives:  684	False positives: 1121	False negatives: 1316	True negatives: 10879
-    clf = DecisionTreeClassifier()
-
-if False:
-    #Accuracy: 0.82871	Precision: 0.39335	Recall: 0.36700	F1: 0.37972	F2: 0.37198
-	#Total predictions: 14000	True positives:  734	False positives: 1132	False negatives: 1266	True negatives: 10868
-    estimators = [('reduce_dim', PCA()), ('classifier', DecisionTreeClassifier())]
-    clf = Pipeline(estimators)
-
-if False:
+if True:
+    from sklearn.tree import DecisionTreeClassifier
     classif = DecisionTreeClassifier()
-
-    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
-
-    pipe = Pipeline(estimators)
 
     param_grid = {
               'classifier__criterion' : ('gini', 'entropy'),
               'classifier__splitter' : ('best', 'random'),
               'classifier__max_depth' : [None, 1, 2, 3],
-              'classifier__random_state' : range(1,42)}
+              'classifier__random_state' : range(20,42)}
 
-    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
 
 if False:
+    from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import AdaBoostClassifier
     classif = AdaBoostClassifier(base_estimator = DecisionTreeClassifier())
-
-    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
-
-    pipe = Pipeline(estimators)
 
     param_grid = {'reduce_dim__n_components' : [None, 1, 19],
               'classifier__base_estimator__criterion' : ('gini', 'entropy'),
@@ -116,56 +89,18 @@ if False:
               'classifier__algorithm' : ('SAMME', 'SAMME.R'),
               'classifier__random_state' : range(30,42)}
 
-    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
 
 if False:
-    # great Precision 0.80830, but not too good Recall 0.20450
-    from sklearn.ensemble import AdaBoostClassifier
-    estimator = DecisionTreeClassifier(criterion='gini', max_depth=1, splitter='random', random_state=34)
-    pca = PCA(n_components=1)
-    classif = AdaBoostClassifier(algorithm='SAMME', base_estimator = estimator)
-
-    estimators = [('reduce_dim', pca), ('classifier', classif)]
-
-    clf = Pipeline(estimators)
-
-if False:
-    from sklearn.ensemble import RandomForestClassifier
-
-    param_grid = {
-            'n_estimators': range(10, 40),
-            'max_depth': [None, 1, 2],
-            'criterion': ('gini', 'entropy'),
-            'random_state': range(20,42)}
-
-    clf = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, n_jobs=-1)
-
-if True:
     from sklearn.ensemble import RandomForestClassifier
     classif = RandomForestClassifier()
-    estimators = [('reduce_dim', PCA()), ('classifier', classif)]
-
-    pipe = Pipeline(estimators)
 
     param_grid = {'reduce_dim__n_components' : [None, 1, 19],
-            'classifier__n_estimators': range(10, 40),
+            'classifier__n_estimators': [1, 10, 40],
             'classifier__max_depth': [None, 1, 2],
             'classifier__criterion': ('gini', 'entropy'),
-            'classifier__random_state': range(20,42)}
+            'classifier__random_state': range(30,42)}
 
-    clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1)
 
-if False:
-    #Accuracy: 0.83143     Precision: 0.39865    Recall: 0.35400    F1: 0.37500    F2: 0.36211
-    #Total predictions: 14000    True positives:  708     False positives: 1068    False negatives: 1292  True negatives: 10932
-    from sklearn.ensemble import RandomForestClassifier
-
-    classif = RandomForestClassifier(criterion='gini', max_depth=None, n_estimators=14, random_state=20, n_jobs=-1)
-    pca = PCA(n_components=1)
-
-    estimators = [('reduce_dim', pca), ('classifier', classif)]
-
-    clf = Pipeline(estimators)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -174,42 +109,32 @@ if False:
 ### stratified shuffle split cross validation. For more info: 
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
-# Example starting point. Try investigating other evaluation techniques!
-#from sklearn.model_selection import train_test_split
-#features_train, features_test, labels_train, labels_test = \
-#    train_test_split(feat_scale, labels, test_size=0.3, random_state=42)
-
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
-sss = StratifiedShuffleSplit(n_splits=1000, test_size=0.3, random_state=42)
 
-features_train, features_test, labels_train, labels_test = [],[],[],[]
-for train_indices, test_indices in sss.split(feat_scale, labels):
-    features_train = [feat_scale[ii] for ii in train_indices]
-    features_test  = [feat_scale[ii] for ii in test_indices]
-    labels_train   = [labels[ii] for ii in train_indices]
-    labels_test    = [labels[ii] for ii in test_indices]
+sss = StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=42)
 
-if local:
-    clf.fit(features_train, labels_train)
-    try:
-        print '\nBest score: %0.3f' % clf.best_score_
-        print 'Best parameters set:'
-        best_parameters = clf.best_estimator_.get_params()
-        for param_name in sorted(param_grid.keys()):
-            print '\t%s: %r' % (param_name, best_parameters[param_name])
+estimators = [('reduce_dim', PCA()), ('classifier', classif)]
+pipe = Pipeline(estimators)
+clf = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, cv=sss, scoring="f1")
 
-        clf = clf.best_estimator_
-        print clf
+# Example starting point. Try investigating other evaluation techniques!
+from sklearn.model_selection import train_test_split
+features_train, features_test, labels_train, labels_test = \
+    train_test_split(feat_scale, labels, test_size=0.3, random_state=42)
 
-    except AttributeError:
-        print 'No score information'
+clf.fit(features_train, labels_train)
+clf = clf.best_estimator_
+print clf
 
-    from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 
-    predict = clf.predict(features_test)
-    print 'accuracy:', accuracy_score(labels_test, predict)
-    print 'precision:', precision_score(labels_test, predict)
-    print 'recall:', recall_score(labels_test, predict)
+predict = clf.predict(features_test)
+print 'accuracy:', accuracy_score(labels_test, predict)
+print 'precision:', precision_score(labels_test, predict)
+print 'recall:', recall_score(labels_test, predict)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
@@ -217,7 +142,3 @@ if local:
 ### generates the necessary .pkl files for validating your results.
 
 dump_classifier_and_data(clf, my_dataset, features_list)
-
-#### TODO Remover esta linha no final
-if not local:
-    main()
