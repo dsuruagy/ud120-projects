@@ -4,7 +4,6 @@ import sys
 import pickle
 sys.path.append("../tools/")
 
-#import poi_id_utils as pu
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
@@ -23,30 +22,56 @@ with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 ### Task 2: Remove outliers
-#pu.describe_data(data_dict)
+print 'Total number of data points:', len(data_dict)
+
+print_feature = True
+total_poi = 0
+for data in data_dict:
+    if print_feature:
+        feature = data_dict[data]
+        print '\nEach person\'s features:', len(feature)
+        print_feature = False
+    # print feature
+    if data_dict[data]['poi']:
+        total_poi += 1
+print '\nnumber of persons of interest:', total_poi
 
 # removing TOTAL data_point, because it's an outlier:
 data_dict.pop('TOTAL')
 
 # converting data dict to dataframe, to use statistics functions
-#df = pu.datadict_to_dataframe(data_dict, features_list)
+import pandas as pd
+df = pd.DataFrame(data_dict).transpose()
+df.drop('email_address', inplace=True, axis=1)
+
+# converting values to numeric format
+df[features_list] = df[features_list].apply(pd.to_numeric, errors ='coerce')
 
 # with the describe function, it's possible to see if there are other max values for outliers
 # like for the TOTAL observation
-#print df.describe()
+##print df.describe()
 
 
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
-my_dataset = data_dict
+
+
+from_poi_rate = 'from_poi_rate'
+shared_poi_rate = 'shared_poi_rate'
+to_poi_rate = 'to_poi_rate'
+
+df[from_poi_rate] = df['from_this_person_to_poi']/df['from_messages']
+df[shared_poi_rate] = df['shared_receipt_with_poi']/df['to_messages']
+df[to_poi_rate] = df['from_poi_to_this_person']/df['to_messages']
+df.fillna(0, inplace=True)
+my_dataset = df.to_dict(orient='index')
+features_list.extend([from_poi_rate, shared_poi_rate, to_poi_rate])
+
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True, remove_NaN=True)
 labels, features = targetFeatureSplit(data)
 
-# Feature selecting
-#from sklearn.preprocessing import scale
-#feat_scale = scale(features)
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -54,7 +79,7 @@ labels, features = targetFeatureSplit(data)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-if True:
+if False:
     from sklearn.tree import DecisionTreeClassifier
     classif = DecisionTreeClassifier()
 
@@ -65,17 +90,18 @@ if True:
               'classifier__random_state' : [31,42]}
 
 
-if False:
+if True:
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import AdaBoostClassifier
     classif = AdaBoostClassifier(base_estimator = DecisionTreeClassifier())
 
-    param_grid = {'skb__k' : range(4, 8),
+    param_grid = {'skb__k' : [5, 7],
               'reduce_dim__n_components' : [None, 1],
               'classifier__base_estimator__criterion' : ('gini', 'entropy'),
               'classifier__base_estimator__splitter' : ('best', 'random'),
               'classifier__base_estimator__max_depth' : [None, 1, 2],
               'classifier__algorithm' : ('SAMME', 'SAMME.R'),
+              'classifier__n_estimators': [1, 10],
               'classifier__random_state' : [31, 42]}
 
 
@@ -83,12 +109,12 @@ if False:
     from sklearn.ensemble import RandomForestClassifier
     classif = RandomForestClassifier()
 
-    param_grid = {'skb__k' : range(4, 8),
+    param_grid = {'skb__k' : [5, 7],
             'reduce_dim__n_components' : [None, 1],
-            'classifier__n_estimators': [1, 10, 40],
+            'classifier__n_estimators': [1, 10],
             'classifier__max_depth': [None, 1, 2],
             'classifier__criterion': ('gini', 'entropy'),
-            'classifier__random_state': range(30,42)}
+            'classifier__random_state': [31, 42]}
 
 
 
@@ -105,9 +131,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 
-sss = StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=42)
-estimators = [('scaler', MinMaxScaler()), ('skb', SelectKBest()), ('reduce_dim', PCA()), ('classifier', classif)]
+sss = StratifiedShuffleSplit(n_splits=100, test_size=0.3, random_state=42)
+estimators = [('scaler', MinMaxScaler()), ('skb', SelectKBest(chi2)), ('reduce_dim', PCA()), ('classifier', classif)]
 pipe = Pipeline(estimators)
 gs = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, cv=sss, scoring="f1")
 gs.fit(features, labels)
