@@ -56,16 +56,16 @@ df[features_list] = df[features_list].apply(pd.to_numeric, errors ='coerce')
 ### Store to my_dataset for easy export below.
 
 
-from_poi_rate = 'from_poi_rate'
+sent_to_poi_rate = 'sent_to_poi_rate'
 shared_poi_rate = 'shared_poi_rate'
-to_poi_rate = 'to_poi_rate'
+received_poi_rate = 'received_poi_rate'
 
-df[from_poi_rate] = df['from_this_person_to_poi']/df['from_messages']
+df[sent_to_poi_rate] = df['from_this_person_to_poi'] / df['from_messages']
 df[shared_poi_rate] = df['shared_receipt_with_poi']/df['to_messages']
-df[to_poi_rate] = df['from_poi_to_this_person']/df['to_messages']
+df[received_poi_rate] = df['from_poi_to_this_person'] / df['to_messages']
 df.fillna(0, inplace=True)
 my_dataset = df.to_dict(orient='index')
-features_list.extend([from_poi_rate, shared_poi_rate, to_poi_rate])
+features_list.extend([sent_to_poi_rate, shared_poi_rate, received_poi_rate])
 
 
 ### Extract features and labels from dataset for local testing
@@ -151,6 +151,7 @@ import numpy as np
 poi = features_list.pop(0)
 features_np = np.array(features_list)[feature_idx]
 print '\nselected features:', features_np
+print 'feature scores:', np.array(skb.scores_)[feature_idx]
 
 ### reinserting poi feature, needed to execute the test
 features_list = np.insert(features_np, 0, poi)
