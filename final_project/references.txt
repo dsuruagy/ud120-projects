@@ -1,0 +1,7 @@
+1) https://discussions.udacity.com/t/project-fear-strugging-with-machine-learning-project/198529
+2) http://sebastianraschka.com/Articles/2014_about_feature_scaling.html
+3) https://en.wikipedia.org/wiki/Cross-validation_(statistics)
+4) https://machinelearningmastery.com/feature-selection-in-python-with-scikit-learn/
+
+I hereby confirm that this submission is my work. I have cited above the origins of any parts of the submission that
+were taken from Websites, books, forums, blog posts, github repositories, etc.
