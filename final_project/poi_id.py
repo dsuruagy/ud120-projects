@@ -36,8 +36,11 @@ for data in data_dict:
         total_poi += 1
 print '\nnumber of persons of interest:', total_poi
 
-# removing TOTAL data_point, because it's an outlier:
+# removing TOTAL data_point, because it's an outlier,
+# LOCKHART EUGENE E (non NaN values) and TRAVEL AGENCY (not a person) as well
 data_dict.pop('TOTAL')
+data_dict.pop('THE TRAVEL AGENCY IN THE PARK')
+data_dict.pop('LOCKHART EUGENE E')
 
 # converting data dict to dataframe, to use statistics functions
 import pandas as pd
@@ -78,44 +81,38 @@ labels, features = targetFeatureSplit(data)
 ### Note that if you want to do PCA or other multi-stage operations,
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
+'''
+from sklearn.tree import DecisionTreeClassifier
+classif = DecisionTreeClassifier()
 
-if False:
-    from sklearn.tree import DecisionTreeClassifier
-    classif = DecisionTreeClassifier()
+param_grid = {'skb__k' : range(4, 8),
+          'classifier__criterion' : ('gini', 'entropy'),
+          'classifier__splitter' : ('best', 'random'),
+          'classifier__max_depth' : [None, 1, 2, 3],
+          'classifier__random_state' : [31,42]}
+'''
 
-    param_grid = {'skb__k' : range(4, 8),
-              'classifier__criterion' : ('gini', 'entropy'),
-              'classifier__splitter' : ('best', 'random'),
-              'classifier__max_depth' : [None, 1, 2, 3],
-              'classifier__random_state' : [31,42]}
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+classif = AdaBoostClassifier(base_estimator = DecisionTreeClassifier(), random_state=42, n_estimators=1)
 
+param_grid = {'skb__k' : range(3, 7),
+          'classifier__base_estimator__criterion' : ('gini', 'entropy'),
+          'classifier__base_estimator__splitter' : ('best', 'random'),
+          'classifier__base_estimator__max_depth' : [None, 1, 2],
+          'classifier__algorithm' : ('SAMME', 'SAMME.R')}
 
-if True:
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.ensemble import AdaBoostClassifier
-    classif = AdaBoostClassifier(base_estimator = DecisionTreeClassifier())
+'''
+from sklearn.ensemble import RandomForestClassifier
+classif = RandomForestClassifier()
 
-    param_grid = {'skb__k' : [5, 7],
-              'reduce_dim__n_components' : [None, 1],
-              'classifier__base_estimator__criterion' : ('gini', 'entropy'),
-              'classifier__base_estimator__splitter' : ('best', 'random'),
-              'classifier__base_estimator__max_depth' : [None, 1, 2],
-              'classifier__algorithm' : ('SAMME', 'SAMME.R'),
-              'classifier__n_estimators': [1, 10],
-              'classifier__random_state' : [31, 42]}
-
-
-if False:
-    from sklearn.ensemble import RandomForestClassifier
-    classif = RandomForestClassifier()
-
-    param_grid = {'skb__k' : [5, 7],
-            'reduce_dim__n_components' : [None, 1],
-            'classifier__n_estimators': [1, 10],
-            'classifier__max_depth': [None, 1, 2],
-            'classifier__criterion': ('gini', 'entropy'),
-            'classifier__random_state': [31, 42]}
-
+param_grid = {'skb__k' : [5, 7],
+        'reduce_dim__n_components' : [None, 1],
+        'classifier__n_estimators': [1, 10],
+        'classifier__max_depth': [None, 1, 2],
+        'classifier__criterion': ('gini', 'entropy'),
+        'classifier__random_state': [31, 42]}
+'''
 
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
@@ -132,12 +129,16 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+from time import time
 
 sss = StratifiedShuffleSplit(n_splits=100, test_size=0.3, random_state=42)
-estimators = [('scaler', MinMaxScaler()), ('skb', SelectKBest(chi2)), ('reduce_dim', PCA()), ('classifier', classif)]
+estimators = [('scaler', MinMaxScaler()), ('skb', SelectKBest(chi2)),
+              ('reduce_dim', PCA(n_components=None)), ('classifier', classif)]
 pipe = Pipeline(estimators)
 gs = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, cv=sss, scoring="f1")
+t0 = time()
 gs.fit(features, labels)
+print "\ntraining time:", round(time() - t0, 3), "s"
 clf = gs.best_estimator_
 print clf
 
